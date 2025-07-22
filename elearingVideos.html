@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Video Playlist</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #videoPlayerContainer {
+            margin-bottom: 20px;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden; /* To ensure video corners match container */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #myVideo {
+            max-width: 90vw; /* Occupy 90% of viewport width */
+            max-height: 70vh; /* Occupy 70% of viewport height */
+            display: block; /* Remove extra space below video */
+            border-radius: 8px; /* Match container border-radius */
+        }
+        .controls-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 17px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #videoInfo {
+            text-align: center;
+            margin-top: 15px;
+        }
+        #videoTitle {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        #videoCounter {
+            color: #666;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="videoPlayerContainer">
+        <video id="myVideo" controls autoplay playsinline>
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <div class="controls-container">
+        <button id="prevBtn" disabled>Previous</button>
+        <button id="nextBtn">Next</button>
+        <button id="muteToggle">Unmute</button>
+    </div>
+
+    <div id="videoInfo">
+        <div id="videoTitle"></div>
+        <div id="videoCounter"></div>
+    </div>
+
+    <script>
+        const videoPlayer = document.getElementById('myVideo');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const muteToggle = document.getElementById('muteToggle');
+        const videoTitleDisplay = document.getElementById('videoTitle');
+        const videoCounterDisplay = document.getElementById('videoCounter');
+
+        // --- UPDATED: LIST YOUR VIDEO FILES HERE WITH THEIR PATHS ---
+        // Assuming all videos are in a subfolder named 'videos/'
+        const videoFiles = [
+            { src: 'videos/1da Banton - No Wahala (Official Video) - 1da Banton (720p, h264).mp4', title: '1da Banton - No Wahala' },
+            { src: 'videos/Adekunle Gold, Zinoleesky - Party No Dey Stop (Official Music Video) - AdekunleGoldVEVO (720p, h264).mp4', title: 'Adekunle Gold - Party No Dey Stop' },
+            { src: 'videos/BNXN fka Buju, Kizz Daniel & Seyi Vibez - GWAGWALADA (Official Video) - Bnxn TYE (720p, h264).mp4', title: 'BNXN, Kizz Daniel & Seyi Vibez - GWAGWALADA' },
+            { src: 'videos/Brick & Lace - Love is Wicked (Official Video) - BrickAndLaceVEVO (480p, h264) (1).mp4', title: 'Brick & Lace - Love is Wicked (Copy)' },
+            { src: 'videos/Brick & Lace - Love is Wicked (Official Video) - BrickAndLaceVEVO (480p, h264).mp4', title: 'Brick & Lace - Love is Wicked' },
+            { src: 'videos/Chiké & Mohbad - Egwu (Official Video) - Chike (720p, h264).mp4', title: 'Chiké & Mohbad - Egwu' },
+            { src: 'videos/Clean Bandit - Symphony (feat. Zara Larsson) [Official Video] - Clean Bandit (720p, h264).mp4', title: 'Clean Bandit - Symphony' },
+            { src: 'videos/Fido - Joy is Coming (Official Video) - FidoMusicVEVO (720p, h264).mp4', title: 'Fido - Joy is Coming' },
+            { src: 'videos/Goon Flavour, Master KG & Eemoh - Ngishutheni (Official Music Video) - Wanitwa Mos Entertainment (720p, h264) (1).mp4', title: 'Goon Flavour, Master KG & Eemoh - Ngishutheni (Copy)' },
+            { src: 'videos/Goon Flavour, Master KG & Eemoh - Ngishutheni (Official Music Video) - Wanitwa Mos Entertainment (720p, h264).mp4', title: 'Goon Flavour, Master KG & Eemoh - Ngishutheni' },
+            { src: 'videos/Johnny Drille - Romeo & Juliet (Official Music Video ) - Mavin Records (720p, h264).mp4', title: 'Johnny Drille - Romeo & Juliet' },
+            { src: 'videos/Johnny Drille - Wait For Me (Official Music Video) - Mavin Records (720p, h264).mp4', title: 'Johnny Drille - Wait For Me' },
+            { src: 'videos/Kabza De Small & Mthunzi - Imithandazo FT Young Stunna, DJ Maphorisa,Sizwe Alakine & UmthakathiKush - Kabza De Small (720p, h264).mp4', title: 'Kabza De Small & Mthunzi - Imithandazo' },
+            { src: 'videos/Kenny Sol - Phenomena (Official Video) - KENNY SOL (720p, h264).mp4', title: 'Kenny Sol - Phenomena' },
+            { src: 'videos/KHAID - Anabella (Official Music Video) - Khaid (720p, h264).mp4', title: 'KHAID - Anabella' },
+            { src: 'videos/KHAID - FOR YOU (DANCE VISUALIZER) - Khaid (720p, h264).mp4', title: 'KHAID - FOR YOU (DANCE VISUALIZER)' },
+            { src: 'videos/Khaid - Jolie (Official Music Video) - Khaid (720p, h264).mp4', title: 'Khaid - Jolie' },
+            { src: 'videos/Majeeed - Cry (shayo) (Official Video) [feat. Lojay] - Majeeed official (720p, h264).mp4', title: 'Majeeed - Cry (shayo)' },
+            { src: 'videos/Mr Pilato, Ego Slimflow & Tebogo G Mashego - Biri Marung ft DJ Maphorisa,Focalistic & Scotts Maphuma - DJ Maphorisa (720p, h264).mp4', title: 'Mr Pilato, Ego Slimflow & Tebogo G Mashego - Biri Marung' },
+            { src: 'videos/Musicbwoy Banana Official Audio - musicbwoy (720p, h264).mp4', title: 'Musicbwoy Banana Official Audio' }
+        ];
+
+        let currentVideoIndex = 0;
+
+        function loadVideo(index) {
+            if (index >= 0 && index < videoFiles.length) {
+                currentVideoIndex = index;
+                videoPlayer.src = videoFiles[currentVideoIndex].src;
+                videoTitleDisplay.textContent = videoFiles[currentVideoIndex].title;
+                videoCounterDisplay.textContent = `Video ${currentVideoIndex + 1} of ${videoFiles.length}`;
+                
+                videoPlayer.load(); // Load the new video source
+                const playPromise = videoPlayer.play(); // Attempt to play
+
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        // Autoplay started successfully
+                        console.log('Video autoplayed successfully.');
+                    }).catch(error => {
+                        // Autoplay was prevented (e.g., if not muted or user hasn't interacted)
+                        console.warn('Autoplay prevented. User might need to click play.', error);
+                        // You might want to display a message to the user here
+                    });
+                }
+                updateButtons();
+            }
+        }
+
+        function playNextVideo() {
+            if (currentVideoIndex < videoFiles.length - 1) {
+                loadVideo(currentVideoIndex + 1);
+            } else {
+                // Option 1: Stop at the end
+                // videoPlayer.pause();
+                // alert('End of playlist!');
+                
+                // Option 2: Loop back to the first video
+                loadVideo(0); 
+            }
+        }
+
+        function playPreviousVideo() {
+            if (currentVideoIndex > 0) {
+                loadVideo(currentVideoIndex - 1);
+            }
+        }
+
+        function updateButtons() {
+            prevBtn.disabled = currentVideoIndex === 0;
+            nextBtn.disabled = currentVideoIndex === videoFiles.length - 1;
+            // If you chose to loop, next button won't be disabled at the end.
+            // If you stop at the end, uncomment the line below for nextBtn.disabled
+            // nextBtn.disabled = currentVideoIndex === videoFiles.length - 1 && !loopingEnabled;
+        }
+
+        function toggleMute() {
+            videoPlayer.muted = !videoPlayer.muted;
+            muteToggle.textContent = videoPlayer.muted ? 'Unmute' : 'Mute';
+        }
+
+        // Event Listeners
+        videoPlayer.addEventListener('ended', playNextVideo);
+        nextBtn.addEventListener('click', playNextVideo);
+        prevBtn.addEventListener('click', playPreviousVideo);
+        muteToggle.addEventListener('click', toggleMute);
+
+        // Initial load
+        loadVideo(currentVideoIndex);
+
+        // Set initial mute button text based on video player's muted state
+        muteToggle.textContent = videoPlayer.muted ? 'Unmute' : 'Mute';
+    </script>
+</body>
+</html>
