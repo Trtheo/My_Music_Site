@@ -75,7 +75,7 @@
 <body>
 
     <div id="videoPlayerContainer">
-        <video id="myVideo" controls autoplay playsinline>
+        <video id="myVideo" controls autoplay muted playsinline preload="metadata">
             Your browser does not support the video tag.
         </video>
     </div>
@@ -99,8 +99,8 @@
         const videoTitleDisplay = document.getElementById('videoTitle');
         const videoCounterDisplay = document.getElementById('videoCounter');
 
-        // --- UPDATED: LIST YOUR VIDEO FILES HERE WITH THEIR PATHS ---
-       
+        // --- IMPORTANT: Verify these file paths and names match your 'videos' folder exactly ---
+        // Ensure filenames (including capitalization) are correct.
         const videoFiles = [
             { src: 'videos/1da Banton - No Wahala (Official Video) - 1da Banton (720p, h264).mp4', title: '1da Banton - No Wahala' },
             { src: 'videos/Adekunle Gold, Zinoleesky - Party No Dey Stop (Official Music Video) - AdekunleGoldVEVO (720p, h264).mp4', title: 'Adekunle Gold - Party No Dey Stop' },
@@ -133,17 +133,19 @@
                 videoTitleDisplay.textContent = videoFiles[currentVideoIndex].title;
                 videoCounterDisplay.textContent = `Video ${currentVideoIndex + 1} of ${videoFiles.length}`;
                 
-                videoPlayer.load(); // Load the new video source
+                // load() is crucial to make the browser recognize the new src
+                videoPlayer.load(); 
+                
                 const playPromise = videoPlayer.play(); // Attempt to play
 
                 if (playPromise !== undefined) {
                     playPromise.then(_ => {
-                        // Autoplay started successfully
+                        // Autoplay started successfully (e.g., if muted or user initiated)
                         console.log('Video autoplayed successfully.');
                     }).catch(error => {
-                        // Autoplay was prevented (e.g., if not muted or user hasn't interacted)
-                        console.warn('Autoplay prevented. User might need to click play.', error);
-                        // You might want to display a message to the user here
+                        // Autoplay was prevented (e.g., if not muted and not user initiated)
+                        console.warn('Autoplay prevented. User might need to click play or unmute.', error);
+                        // Optionally: show a message to the user prompting them to play
                     });
                 }
                 updateButtons();
@@ -154,11 +156,13 @@
             if (currentVideoIndex < videoFiles.length - 1) {
                 loadVideo(currentVideoIndex + 1);
             } else {
-                // Option 1: Stop at the end
+                // Option 1: Stop at the end (uncomment and comment Option 2 if preferred)
                 // videoPlayer.pause();
+                // videoPlayer.currentTime = 0; // Reset video to start
                 // alert('End of playlist!');
+                // nextBtn.disabled = true; // Disable next button at end
                 
-                // Option 2: Loop back to the first video
+                // Option 2: Loop back to the first video (currently active)
                 loadVideo(0); 
             }
         }
@@ -170,11 +174,11 @@
         }
 
         function updateButtons() {
+            // Disable 'Previous' if at the first video
             prevBtn.disabled = currentVideoIndex === 0;
-            nextBtn.disabled = currentVideoIndex === videoFiles.length - 1;
-            // If you chose to loop, next button won't be disabled at the end.
-            // If you stop at the end, uncomment the line below for nextBtn.disabled
-            // nextBtn.disabled = currentVideoIndex === videoFiles.length - 1 && !loopingEnabled;
+            // Disable 'Next' if at the last video AND you're NOT looping
+            // If you chose to loop (Option 2 above), next button will never be truly disabled at the end.
+            nextBtn.disabled = currentVideoIndex === videoFiles.length - 1; 
         }
 
         function toggleMute() {
@@ -188,10 +192,10 @@
         prevBtn.addEventListener('click', playPreviousVideo);
         muteToggle.addEventListener('click', toggleMute);
 
-        // Initial load
+        // Initial load of the first video when the page loads
         loadVideo(currentVideoIndex);
 
-        // Set initial mute button text based on video player's muted state
+        // Set initial mute button text based on video player's actual muted state
         muteToggle.textContent = videoPlayer.muted ? 'Unmute' : 'Mute';
     </script>
 </body>
